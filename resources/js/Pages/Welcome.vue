@@ -48,9 +48,9 @@ const createComment = (id) => {
                     name: page.props.auth.user.name
                 }
             };
-            
+
             currentPost.value.comments.push(newComment);
-            
+
             form.reset('body');
         }
     })
@@ -84,6 +84,13 @@ const createComment = (id) => {
                 Register
             </Link>
         </template>
+
+        <Link
+            :href="route('guest-book.index')"
+            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+        >
+            Guest Book
+        </Link>
     </div>
 
     <div class="w-full flex justify-center">

@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
  * App\Models\Interest
  *
  * @property int $id
+ * @property int $user_id
  * @property string $title
  * @property int $type
  * @property string $description
@@ -24,6 +26,7 @@ class Interest extends Model
         'title',
         'type',
         'description',
+        'user_id',
     ];
 
     const TYPE_FILMS = 0;
@@ -43,5 +46,10 @@ class Interest extends Model
     public function isWalkType(): bool
     {
         return $this->type === self::TYPE_WALKING;
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

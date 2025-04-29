@@ -154,7 +154,6 @@ const importPosts = (event) => {
                 </h3>
             </template>
             <template #content>
-
                 <div>
                     <p>
                         Import Posts

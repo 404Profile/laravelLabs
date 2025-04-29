@@ -87,10 +87,10 @@ const deletePhoto = (id) => {
                     Photos
                 </h2>
 
-                <div class="gap-3 flex flex-wrap items-center justify-start">
+                <div v-if="$page.props.authUser.hasRole.admin" class="gap-3 flex flex-wrap items-center justify-start">
                     <button @click="displayingModal = true" class="relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg gap-1.5 px-3 py-1.5 text-sm inline-grid shadow-sm bg-amber-600 text-white hover:bg-amber-500 focus-visible:ring-amber-500/50 dark:bg-amber-500 dark:hover:bg-amber-400 dark:focus-visible:ring-amber-400/50">
                         <span>
-                            New product
+                            New photo
                         </span>
                     </button>
                 </div>

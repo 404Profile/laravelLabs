@@ -58,16 +58,22 @@ const logout = () => {
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-                                <NavLink v-if="$page.props.authUser.hasRole.admin" :href="route('photos.index')" :active="route().current('photos.*')">
+                                <NavLink :href="route('guest-book.index')" :active="route().current('guest-book.index')">
+                                    Guest Book
+                                </NavLink>
+                                <NavLink :href="route('table')" :active="route().current('table')">
+                                    Progress table
+                                </NavLink>
+                                <NavLink :href="route('photos.index')" :active="route().current('photos.*')">
                                     Photos
                                 </NavLink>
-                                <NavLink v-if="$page.props.authUser.hasRole.admin" :href="route('interests.index')" :active="route().current('interests.*')">
+                                <NavLink :href="route('interests.index')" :active="route().current('interests.*')">
                                     Interests
                                 </NavLink>
                                 <NavLink :href="route('test.index')" :active="route().current('test.*')">
                                     Test
                                 </NavLink>
-                                <NavLink v-if="$page.props.authUser.hasRole.admin" :href="route('comments.index')" :active="route().current('comments.*')">
+                                <NavLink :href="route('comments.index')" :active="route().current('comments.*')">
                                     Comments
                                 </NavLink>
                                 <NavLink v-if="$page.props.authUser.hasRole.admin" :href="route('posts.index')" :active="route().current('posts.*')">

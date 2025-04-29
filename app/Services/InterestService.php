@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Interest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InterestService
 {
@@ -13,6 +14,7 @@ class InterestService
         $interest->title = $request['title'];
         $interest->type = $request['type'];
         $interest->description = $request['description'];
+        $interest->user_id = Auth::id();
         $interest->save();
 
         return $interest;

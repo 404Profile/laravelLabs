@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Comment;
+use App\Models\GuestBook;
 use App\Models\Interest;
 use App\Models\Photo;
 use App\Models\Post;
@@ -30,8 +31,16 @@ class DatabaseSeeder extends Seeder
             'role' => 1,
         ]);
 
+        User::factory()->withPersonalTeam()->create([
+            'name' => 'user',
+            'email' => 'user@user.com',
+            'password' => Hash::make('password'),
+            'role' => 0,
+        ]);
+
         Comment::factory(30)->create();
         Post::factory(30)->create();
         PostComment::factory(300)->create();
+        GuestBook::factory()->count(20)->create();
     }
 }

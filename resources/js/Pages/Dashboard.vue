@@ -41,7 +41,7 @@ const props = defineProps({
                             <pagination :links="visits.links" />
                         </div>
                     </template>
-                    <template>
+                    <template v-else>
                         <Welcome />
                     </template>
                 </div>

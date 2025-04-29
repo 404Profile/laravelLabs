@@ -6,6 +6,7 @@ use App\Http\Requests\StoreInterestRequest;
 use App\Models\Interest;
 use App\Services\InterestService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
@@ -16,9 +17,9 @@ class InterestController extends Controller
      */
     public function index()
     {
-        $films = Interest::query()->where('type', Interest::TYPE_FILMS)->get();
-        $music = Interest::query()->where('type', Interest::TYPE_MUSIC)->get();
-        $walking = Interest::query()->where('type', Interest::TYPE_WALKING)->get();
+        $films = Auth::user()->interests()->where('type', Interest::TYPE_FILMS)->latest()->get();
+        $music = Auth::user()->interests()->where('type', Interest::TYPE_MUSIC)->latest()->get();
+        $walking = Auth::user()->interests()->where('type', Interest::TYPE_WALKING)->latest()->get();
 
         $interests = [
             'films' => $films,

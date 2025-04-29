@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,6 +21,7 @@ class InterestFactory extends Factory
             'title' => fake()->realText(15),
             'type' => fake()->numberBetween(0, 2),
             'description' => fake()->realText(800),
+            'user_id' => User::query()->inRandomOrder()->pluck('id')->first(),
         ];
     }
 }
