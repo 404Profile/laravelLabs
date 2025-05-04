@@ -19,10 +19,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->withPersonalTeam()->create();
+        User::factory(5)->withPersonalTeam()->create();
 
         Photo::factory(30)->create();
-        Interest::factory(30)->create();
+        Interest::factory(100)->create();
 
         User::factory()->withPersonalTeam()->create([
             'name' => 'admin',

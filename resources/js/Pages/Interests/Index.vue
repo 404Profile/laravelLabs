@@ -7,17 +7,29 @@ import CreateModal from "@/Components/Custom/CreateModal.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import {ref} from "vue";
+import SecondaryButton from "@/Components/SecondaryButton.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import EditModal from "@/Components/Custom/EditModal.vue";
 
 const props = defineProps({
     interests: Object,
 });
 
 const displayingModal = ref(false);
+const displayingEditModal = ref(false);
+const editingInterest = ref(null);
 
 const form = useForm({
     title: '',
     type: 0,
     description: '',
+});
+
+const editForm = useForm({
+    title: '',
+    type: 0,
+    description: '',
+    _method: 'put',
 });
 
 const createInterest = () => {
@@ -32,6 +44,26 @@ const createInterest = () => {
 const deleteInterest = (id) => {
     router.delete(route('interests.destroy', id));
 }
+
+const openEditModal = (interest) => {
+    editingInterest.value = interest;
+    editForm.title = interest.title;
+    editForm.type = interest.type;
+    editForm.description = interest.description;
+
+    displayingEditModal.value = true;
+};
+
+const updateInterest = () => {
+    editForm.post(route('interests.update', editingInterest.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            displayingEditModal.value = false;
+            editForm.reset();
+        },
+    });
+}
+
 </script>
 
 <template>
@@ -55,7 +87,11 @@ const deleteInterest = (id) => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-                    <interests-list :elements="interests" :on-delete="deleteInterest" />
+                    <interests-list
+                        :elements="interests"
+                        :on-delete="deleteInterest"
+                        :on-edit="openEditModal"
+                    />
                 </div>
             </div>
         </div>
@@ -112,6 +148,61 @@ const deleteInterest = (id) => {
 
             </template>
         </create-modal>
+
+        <edit-modal
+            v-model:show="displayingEditModal"
+            :on-update="updateInterest"
+            max-width="2xl"
+        >
+            <template #title>
+                <h2 class="text-lg font-medium text-gray-900">
+                    Edit Interest
+                </h2>
+            </template>
+
+            <template #content>
+                <div class="mt-6 space-y-4">
+                    <div>
+                        <InputLabel for="edit-title" value="Title" />
+                        <TextInput
+                            id="edit-title"
+                            v-model="editForm.title"
+                            type="text"
+                            class="mt-1 block w-full"
+                            required
+                            autofocus
+                        />
+                        <InputError class="mt-2" :message="editForm.errors.title" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="edit-type" value="Type" />
+                        <select
+                            id="edit-type"
+                            v-model="editForm.type"
+                            class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                        >
+                            <option value="0">Films</option>
+                            <option value="1">Music</option>
+                            <option value="2">Walking</option>
+                        </select>
+                        <InputError class="mt-2" :message="editForm.errors.type" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="edit-description" value="Description" />
+                        <TextInput
+                            id="edit-description"
+                            v-model="editForm.description"
+                            type="text"
+                            class="mt-1 block w-full"
+                            required
+                        />
+                        <InputError class="mt-2" :message="editForm.errors.description" />
+                    </div>
+                </div>
+            </template>
+        </edit-modal>
 
     </AppLayout>
 </template>

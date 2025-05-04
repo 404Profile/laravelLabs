@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePhotoRequest;
+use App\Http\Requests\UpdatePhotoRequest;
 use App\Models\Photo;
 use App\Services\PhotoService;
 use Illuminate\Http\Request;
@@ -61,9 +62,11 @@ class PhotoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Photo $photo)
+    public function update(UpdatePhotoRequest $request, Photo $photo, PhotoService $photoService)
     {
-        //
+        $request->validated();
+        $photoService->updatePhoto($request, $photo);
+        return Redirect::back()->with('success', 'The photo was successfully updated');
     }
 
     /**

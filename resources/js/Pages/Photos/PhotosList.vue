@@ -7,6 +7,7 @@ const props = defineProps({
         required: true,
     },
     onDelete: Function,
+    onEdit: Function,
 })
 </script>
 
@@ -25,6 +26,10 @@ const props = defineProps({
                             <p class="text-base font-semibold text-gray-900 dark:text-gray-300 mb-0 lg:mb-7">
                                 {{ element.title }}
                             </p>
+
+                            <button v-if="$page.props.authUser.hasRole.admin" @click="onEdit(element)" class="h-min">
+                                Edit
+                            </button>
 
                             <button v-if="$page.props.authUser.hasRole.admin" @click="onDelete(element.id)" class="h-min">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-red-500 hover:scale-110">

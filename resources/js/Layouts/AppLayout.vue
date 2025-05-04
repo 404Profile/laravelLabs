@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import {onDeactivated, onMounted, ref} from 'vue';
+import {Head, Link, router, usePage} from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -12,6 +12,7 @@ import { useDark, useToggle } from '@vueuse/core';
 
 defineProps({
     title: String,
+    userColor: String,
 });
 
 const isDark = useDark()
@@ -27,9 +28,39 @@ const switchToTeam = (team) => {
     });
 };
 
+const userColor = ref(null);
+
 const logout = () => {
+    const page = usePage();
+    userColor.value = null;
+    const userId = page.props.auth.user.id;
+    const colorKey = `user_color_${userId}`;
+    localStorage.removeItem(colorKey);
     router.post(route('logout'));
 };
+
+const generateRandomColor = () => {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+};
+
+onMounted(() => {
+    const page = usePage();
+
+    if (page.props.auth && page.props.auth.user) {
+        const userId = page.props.auth.user.id;
+        const colorKey = `user_color_${userId}`;
+
+        let savedColor = localStorage.getItem(colorKey);
+
+        if (!savedColor) {
+            savedColor = generateRandomColor();
+            localStorage.setItem(colorKey, savedColor);
+        }
+
+        userColor.value = savedColor;
+    }
+});
+
 </script>
 
 <template>
@@ -73,8 +104,8 @@ const logout = () => {
                                 <NavLink :href="route('test.index')" :active="route().current('test.*')">
                                     Test
                                 </NavLink>
-                                <NavLink :href="route('comments.index')" :active="route().current('comments.*')">
-                                    Comments
+                                <NavLink :href="route('contact.index')" :active="route().current('contact.*')">
+                                    Contact
                                 </NavLink>
                                 <NavLink v-if="$page.props.authUser.hasRole.admin" :href="route('posts.index')" :active="route().current('posts.*')">
                                     Posts
@@ -82,7 +113,15 @@ const logout = () => {
                             </div>
                         </div>
 
+                        <div
+                            v-if="userColor"
+                            class="w-5 h-5 rounded-full mr-3"
+                            :style="{ backgroundColor: userColor }"
+                            title="Ваш персональный цвет"
+                        ></div>
+
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
+
                             <div class="ms-3 relative">
 
                                 <div>

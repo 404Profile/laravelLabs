@@ -28,10 +28,6 @@ Route::middleware([LogVisit::class])->group(function () {
         Route::post('storeComment', [CommentController::class, 'store'])->name('comments.store');
         Route::post('validateTest', [TestController::class, 'validateTest'])->name('test.validate');
         Route::resource('photos', PhotoController::class);
-
-        Route::get('/table', function () {
-            return Inertia::render('Table');
-        })->name('table');;
     });
 
     Route::middleware([CheckAdminRole::class, 'auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
@@ -39,5 +35,15 @@ Route::middleware([LogVisit::class])->group(function () {
     });
 });
 
+Route::get('/table', function () {
+    return Inertia::render('Table');
+})->name('table');
+
+Route::get('contact', [\App\Http\Controllers\ContactMessageController::class, 'index'])->name('contact.index');
+Route::post('contact', [\App\Http\Controllers\ContactMessageController::class, 'store'])->name('contact.store');
+
 Route::get('/guest-book', [GuestBookController::class, 'index'])->name('guest-book.index');
 Route::post('/guest-book', [GuestBookController::class, 'store'])->name('guest-book.store');
+
+Route::get('/guest-book/export', [GuestBookController::class, 'export'])->name('guest-book.export');
+Route::post('/guest-book/import', [GuestBookController::class, 'import'])->name('guest-book.import');

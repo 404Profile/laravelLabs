@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\ValidateTestAction;
 use App\Models\TestAnswer;
+use App\Models\TestResult;
+use App\Models\User;
 use App\Services\TestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +19,13 @@ class TestController extends Controller
      */
     public function index()
     {
-        $testAnswers = TestAnswer::query()->where('user_id', Auth::id())->get();
+        $user = Auth::user();
+
+        if ($user->hasRole(User::USER_ADMIN)) {
+            $testAnswers = TestAnswer::query()->get();
+        } else {
+            $testAnswers = TestAnswer::query()->where('user_id', Auth::id())->get();
+        }
 
         return Inertia::render('Test/Index', [
             'testAnswers' => $testAnswers,

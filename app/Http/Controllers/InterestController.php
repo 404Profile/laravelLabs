@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInterestRequest;
+use App\Http\Requests\UpdateInterestRequest;
 use App\Models\Interest;
 use App\Services\InterestService;
 use Illuminate\Http\Request;
@@ -69,9 +70,11 @@ class InterestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Interest $interest)
+    public function update(UpdateInterestRequest $request, Interest $interest, InterestService $interestService)
     {
-        //
+        $request->validated();
+        $interestService->updateInterest($request, $interest);
+        return Redirect::back()->with('success', 'The interest was successfully updated');
     }
 
     /**

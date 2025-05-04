@@ -8,6 +8,7 @@ import InputLabel from "@/Components/InputLabel.vue";
 import SecondaryButton from "@/Components/SecondaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
 import InputError from "@/Components/InputError.vue";
+import EditModal from "@/Components/Custom/EditModal.vue";
 
 const props = defineProps({
     photos: Object,
@@ -20,9 +21,21 @@ const form = useForm({
     photo_path: null,
 });
 
+const editForm = useForm({
+    title: '',
+    photo_path: null,
+    remove_photo: false,
+    _method: 'put',
+});
+
 const photoInput = ref(null);
 const photoPreview = ref(null);
 const uploadingImage = ref(false);
+
+const editPhotoInput = ref(null);
+const editPhotoPreview = ref(null);
+const editUploadingImage = ref(false);
+
 
 const selectNewPhoto = () => {
     photoInput.value.click();
@@ -77,6 +90,74 @@ const createPhoto = () => {
 const deletePhoto = (id) => {
     router.delete(route('photos.destroy', id));
 }
+
+const selectEditPhoto = () => {
+    editPhotoInput.value.click();
+};
+
+const updateEditPhotoPreview = () => {
+    const photo = editPhotoInput.value.files[0];
+
+    if (!photo) return;
+
+    editUploadingImage.value = true;
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        editPhotoPreview.value = e.target.result;
+    };
+
+    reader.onerror = (error) => {
+        console.error('Error reading file: ', error)
+    }
+
+    reader.readAsDataURL(photo);
+
+    editUploadingImage.value = false;
+};
+
+const deleteEditPhotoInput = () => {
+    editPhotoPreview.value = null;
+    clearEditPhotoFileInput();
+    editForm.remove_photo = true;
+};
+
+const clearEditPhotoFileInput = () => {
+    if (editPhotoInput.value?.value) {
+        editPhotoInput.value.value = null;
+    }
+};
+
+const displayingEditModal = ref(false);
+const editingPhoto = ref(null);
+
+
+const openEditModal = (photo) => {
+    editingPhoto.value = photo;
+    editForm.title = photo.title;
+    editForm.remove_photo = false;
+    editPhotoPreview.value = null;
+    clearEditPhotoFileInput();
+
+    displayingEditModal.value = true;
+};
+
+const updatePhoto = () => {
+    if (editPhotoInput.value && editPhotoInput.value.files[0]) {
+        editForm.photo_path = editPhotoInput.value.files[0];
+    }
+
+    editForm.post(route('photos.update', editingPhoto.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            displayingEditModal.value = false;
+            editForm.reset();
+            editPhotoPreview.value = null;
+            clearEditPhotoFileInput();
+        },
+    });
+}
 </script>
 
 <template>
@@ -100,7 +181,11 @@ const deletePhoto = (id) => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-                    <photos-list :elements="photos" :on-delete="deletePhoto" />
+                    <photos-list
+                        :elements="photos"
+                        :on-delete="deletePhoto"
+                        :on-edit="openEditModal"
+                    />
                 </div>
             </div>
         </div>
@@ -157,6 +242,70 @@ const deletePhoto = (id) => {
 
             </template>
         </create-modal>
+
+        <edit-modal
+            v-model:show="displayingEditModal"
+            :on-update="updatePhoto"
+            max-width="2xl"
+        >
+            <template #title>
+                <h3 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight flex items-center">
+                    Edit Photo
+                </h3>
+            </template>
+            <template #content>
+                <div class="space-y-2">
+                    <div class="col-span-6 sm:col-span-4">
+                        <InputLabel for="edit-title" value="Title" />
+                        <TextInput
+                            id="edit-title"
+                            v-model="editForm.title"
+                            type="text"
+                            class="mt-1 block w-full"
+                            required
+                            autofocus
+                            autocomplete="title"
+                        />
+                        <InputError class="mt-2" :message="editForm.errors.title" />
+                    </div>
+
+                    <div v-if="editingPhoto && editingPhoto.photo_path && !editPhotoPreview && !editForm.remove_photo" class="col-span-6 sm:col-span-4 py-3 px-1">
+                        <InputLabel value="Current image" />
+                        <div class="mt-2">
+                            <img :src="`/storage/${editingPhoto.photo_path}`" alt="Current photo" class="max-w-full h-auto max-h-64" />
+                        </div>
+                    </div>
+
+                    <div class="col-span-6 sm:col-span-4">
+                        <input ref="editPhotoInput" accept="image/jpeg, image/png, image/jpg" type="file" class="hidden" @change="updateEditPhotoPreview">
+                        <InputLabel for="edit-photo" value="Update image" />
+
+                        <div class="block">
+                            <SecondaryButton class="mt-2 mr-2" type="button" @click.prevent="selectEditPhoto">
+                                Select new image
+                            </SecondaryButton>
+
+                            <SecondaryButton type="button" class="mt-2 mr-2" @click.prevent="deleteEditPhotoInput">
+                                Remove image
+                            </SecondaryButton>
+                        </div>
+
+                        <div v-if="editUploadingImage" class="dark:text-white">
+                            Loading...
+                        </div>
+                    </div>
+
+                    <div v-show="editPhotoPreview" class="col-span-6 sm:col-span-4 py-3 px-1">
+                        <InputLabel value="New image preview" />
+                        <div id="edit-preview" class="mt-2">
+                            <img :src="editPhotoPreview" alt="Preview" class="max-w-full h-auto max-h-64" />
+                        </div>
+                    </div>
+
+                    <InputError class="mt-2" :message="editForm.errors.photo_path" />
+                </div>
+            </template>
+        </edit-modal>
 
     </AppLayout>
 </template>

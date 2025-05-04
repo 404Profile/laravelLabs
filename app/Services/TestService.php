@@ -10,9 +10,9 @@ class TestService
 {
     public function validateTest(Request $request): bool
     {
-        if (!preg_match("/^[А-Яа-яёЁ]+\s[А-Яа-яёЁ]+\s[А-Яа-яёЁ]+$/u", $request->name)) {
-            return false;
-        }
+//        if (!preg_match("/^[А-Яа-яёЁ]+\s[А-Яа-яёЁ]+\s[А-Яа-яёЁ]+$/u", $request->name)) {
+//            return false;
+//        }
 
         $this->createTestAnswers($request);
 

@@ -28,12 +28,25 @@ class PostService
     {
         $post->title = $request['title'];
         $post->body = $request['body'];
+
+        if ($request->boolean('remove_photo') && $post->photo_path) {
+            Storage::disk('public')->delete($post->photo_path);
+            $post->photo_path = null;
+        } elseif ($request->hasFile('photo_path')) {
+            if ($post->photo_path) {
+                Storage::disk('public')->delete($post->photo_path);
+            }
+            $post->photo_path = Storage::disk('public')->putFile('posts', $request->file('photo_path'));
+        }
+
         $post->update();
     }
 
     public function deletePost(Post $post): void
     {
-        Storage::disk('public')->delete($post->photo_path);
+        if ($post->photo_path) {
+            Storage::disk('public')->delete($post->photo_path);
+        }
         $post->delete();
     }
 }

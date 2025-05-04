@@ -47,6 +47,39 @@ function closeModal() {
 function openModal() {
     isOpen.value = true
 }
+
+const getTotalScore = (answer) => {
+    const data = parseElementEcosystem(answer.data);
+    let score = 0;
+
+    // Вопрос 1
+    if (data.elementEcosystem[1]) score++;
+
+    // Вопрос 2
+    if (data.eating[1]) score++;
+
+    // Вопрос 3
+    if (data.wolf[1] && data.rabbit[1] && data.bear[1]) score++;
+
+    return score;
+}
+
+const getScoreColor = (isCorrect) => {
+    return isCorrect ? 'text-green-600' : 'text-red-600';
+}
+
+const formattedDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 </script>
 
 <template>
@@ -167,14 +200,14 @@ function openModal() {
                                 @click="openModal"
                                 class="rounded-md bg-black/20 px-4 py-2 text-sm font-medium text-white hover:bg-black/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
                             >
-                                My answers
+                                {{ $page.props.authUser.hasRole.admin ? 'All Answers' : 'My Answers' }}
                             </button>
 
                             <button type="reset" @click="reset"
                                     class="ml-4 relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 ring-1 ring-gray-950/10">
                                 Очистить
                             </button>
-                            <button type="submit" @click="submitForm"
+                            <button type="submit"
                                     class="relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-amber-600 text-white hover:bg-amber-500 focus-visible:ring-amber-500/50">
                                 Отправить
                             </button>
@@ -214,39 +247,111 @@ function openModal() {
                             leave-to="opacity-0 scale-95"
                         >
                             <DialogPanel
-                                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                                class="w-full max-w-7xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
                             >
                                 <DialogTitle
                                     as="h3"
                                     class="text-lg font-medium leading-6 text-gray-900"
                                 >
-                                    Your answers on this test
+                                    <span>{{ $page.props.authUser.hasRole.admin ? 'All Answers' : 'Your answers on this test' }}</span>
                                 </DialogTitle>
-                                <div class="mt-2">
-                                    <div v-for="(answer, index) in testAnswers" :key="index" class="pb-4">
-                                        <p>Attempt №{{ index+1 }} | Date - {{ Date(answer.created_at) }}</p>
-                                        <div>
-                                            <p>Question 1: Какой из перечисленных факторов НЕ является биотическим элементом экосистемы?</p>
-                                            <p>Correct answer: Вода</p>
-                                            <p>Your answer: {{ parseElementEcosystem(answer.data).elementEcosystem[0] }}</p>
-                                            <p>Correct: {{ parseElementEcosystem(answer.data).elementEcosystem[1] ? 'Yes' : 'No' }}</p>
-                                        </div>
+                                <div class="mt-2 overflow-x-auto">
+                                    <table class="min-w-full bg-white border border-gray-200">
+                                        <thead>
+                                        <tr>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                № Попытки
+                                            </th>
+                                            <th v-if="$page.props.authUser.hasRole.admin" class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                ID пользователя
+                                            </th>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Дата
+                                            </th>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Вопрос 1
+                                            </th>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Вопрос 2
+                                            </th>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Вопрос 3
+                                            </th>
+                                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Общий балл
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="(answer, index) in testAnswers" :key="index" class="hover:bg-gray-50">
+                                            <td class="py-3 px-4 border-b border-gray-200">
+                                                {{ index + 1 }}
+                                            </td>
+                                            <td v-if="$page.props.authUser.hasRole.admin" class="py-3 px-4 border-b border-gray-200">
+                                                {{ answer.user_id }}
+                                            </td>
+                                            <td class="py-3 px-4 border-b border-gray-200">
+                                                {{ answer.created_at }}
+                                            </td>
 
-                                        <div>
-                                            <p>Question 2: Укажите организм, занимающий вершину пищевой пирамиды</p>
-                                            <p>Correct answer: Человек/человек</p>
-                                            <p>Your answer: {{ parseElementEcosystem(answer.data).eating[0] }}</p>
-                                            <p>Correct: {{ parseElementEcosystem(answer.data).eating[1] ? 'Yes' : 'No' }}</p>
-                                        </div>
+                                            <!-- Вопрос 1 -->
+                                            <td class="py-3 px-4 border-b border-gray-200">
+                                                <div :class="getScoreColor(parseElementEcosystem(answer.data).elementEcosystem[1])">
+                                                    <div>Ответ: {{ parseElementEcosystem(answer.data).elementEcosystem[0] }}</div>
+                                                    <div class="text-xs font-medium mt-1">
+                                                        {{ parseElementEcosystem(answer.data).elementEcosystem[1] ? '✓ Верно' : '✗ Неверно' }}
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                                        <div>
-                                            <p>Question 3: Какие из перечисленных видов относятся к хищникам?</p>
-                                            <p>Correct answer: Волк и медведь</p>
-                                            <p>Your answer: {{ parseElementEcosystem(answer.data).wolf[0] }} {{ parseElementEcosystem(answer.data).rabbit[0] }} {{ parseElementEcosystem(answer.data).bear[0] }}</p>
-                                            <p>Correct: {{ parseElementEcosystem(answer.data).wolf[1] && parseElementEcosystem(answer.data).rabbit[1] && parseElementEcosystem(answer.data).bear[1] ? 'Yes' : 'No' }}</p>
-                                        </div>
-                                    </div>
+                                            <!-- Вопрос 2 -->
+                                            <td class="py-3 px-4 border-b border-gray-200">
+                                                <div :class="getScoreColor(parseElementEcosystem(answer.data).eating[1])">
+                                                    <div>Ответ: {{ parseElementEcosystem(answer.data).eating[0] }}</div>
+                                                    <div class="text-xs font-medium mt-1">
+                                                        {{ parseElementEcosystem(answer.data).eating[1] ? '✓ Верно' : '✗ Неверно' }}
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Вопрос 3 -->
+                                            <td class="py-3 px-4 border-b border-gray-200">
+                                                <div :class="getScoreColor(parseElementEcosystem(answer.data).wolf[1] && parseElementEcosystem(answer.data).rabbit[1] && parseElementEcosystem(answer.data).bear[1])">
+                                                    <div>
+                                                        <span v-if="parseElementEcosystem(answer.data).wolf[0]">Волк </span>
+                                                        <span v-if="parseElementEcosystem(answer.data).rabbit[0]">Кролик </span>
+                                                        <span v-if="parseElementEcosystem(answer.data).bear[0]">Медведь</span>
+                                                    </div>
+                                                    <div class="text-xs font-medium mt-1">
+                                                        {{ parseElementEcosystem(answer.data).wolf[1] && parseElementEcosystem(answer.data).rabbit[1] && parseElementEcosystem(answer.data).bear[1] ? '✓ Верно' : '✗ Неверно' }}
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Общий балл -->
+                                            <td class="py-3 px-4 border-b border-gray-200 font-bold">
+                                                {{ getTotalScore(answer) }}/3
+                                            </td>
+                                        </tr>
+
+                                        <!-- Если нет результатов -->
+                                        <tr v-if="!testAnswers || testAnswers.length === 0">
+                                            <td :colspan="$page.props.authUser.hasRole.admin ? 7 : 6" class="py-4 px-4 text-center text-gray-500">
+                                                Нет доступных результатов
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
+
+                                <!-- Легенда -->
+                                <div class="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                                    <div class="font-semibold mb-2">Информация о вопросах:</div>
+                                    <div class="mb-1">Вопрос 1: Какой из перечисленных факторов НЕ является биотическим элементом экосистемы? (Правильный ответ: Вода)</div>
+                                    <div class="mb-1">Вопрос 2: Укажите организм, занимающий вершину пищевой пирамиды (Правильный ответ: Человек)</div>
+                                    <div>Вопрос 3: Какие из перечисленных видов относятся к хищникам? (Правильные ответы: Волк и медведь)</div>
+                                </div>
+
 
                                 <div class="mt-4">
                                     <button

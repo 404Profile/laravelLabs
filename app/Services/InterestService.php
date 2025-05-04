@@ -19,4 +19,14 @@ class InterestService
 
         return $interest;
     }
+
+    public function updateInterest(Request $request, Interest $interest): Interest
+    {
+        $interest->title = $request->title;
+        $interest->type = $request->type;
+        $interest->description = $request->description;
+        $interest->save();
+
+        return $interest;
+    }
 }
