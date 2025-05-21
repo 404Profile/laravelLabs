@@ -49,4 +49,54 @@ class PostService
         }
         $post->delete();
     }
+
+    /**
+     * Import posts from a CSV file.
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return int Count of imported posts
+     */
+    public function importFromCsv($file): int
+    {
+        $count = 0;
+        $path = $file->getRealPath();
+
+        if (($handle = fopen($path, 'r')) !== false) {
+            fgetcsv($handle, 1000, ',');
+
+            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+                if (count($data) >= 2) {
+                    $title = $data[0] ?? '';
+                    $body = $data[1] ?? '';
+                    $imageUrl = $data[2] ?? null;
+
+                    $pathImage = null;
+
+                    if ($imageUrl && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                        $imageContents = file_get_contents($imageUrl);
+                        $filename = basename($imageUrl);
+                        $tempPath = sys_get_temp_dir() . '/' . $filename;
+
+                        file_put_contents($tempPath, $imageContents);
+
+                        $pathImage = Storage::disk('public')->putFile('posts', new \Illuminate\Http\File($tempPath));
+
+                        @unlink($tempPath);
+                    }
+
+                    $post = new Post();
+                    $post->title = $title;
+                    $post->body = $body;
+                    $post->user_id = Auth::id();
+                    $post->photo_path = $pathImage;
+                    $post->save();
+
+                    $count++;
+                }
+            }
+            fclose($handle);
+        }
+
+        return $count;
+    }
 }

@@ -8,19 +8,22 @@ import CreateModal from "@/Components/Custom/CreateModal.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PostList from "@/Pages/Posts/PostList.vue";
-import {read, utils} from 'xlsx';
-import Papa from 'papaparse';
 
 const props = defineProps({
     posts: Object,
 })
 
 const displayingModal = ref(false)
+const displayingImportModal = ref(false)
 
 const form = useForm({
     title: '',
     body: '',
     photo_path: null,
+});
+
+const importForm = useForm({
+    csv_file: null,
 });
 
 const photoInput = ref(null);
@@ -77,47 +80,18 @@ const createPost = () => {
     });
 }
 
-const importPosts = (event) => {
-    const file = event.target.files[0];
+const importPosts = () => {
+    importForm.post(route('posts.import-csv'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            displayingImportModal.value = false;
+            importForm.reset();
+        },
+    });
+};
 
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = read(data, {type: 'array'});
-
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const csvData = utils.sheet_to_csv(worksheet);
-
-        Papa.parse(csvData, {
-            complete: (results) => {
-                const importedPosts = results.data.map(row => ({
-                    title: row[0],
-                    body: row[1],
-                    user_id: row[2],
-                    created_at: row[3],
-                }));
-
-                importedPosts.forEach(post => {
-                    form.title = post.title;
-                    form.body = post.body;
-                    form.post(route('posts.store'), {
-                        preserveScroll: true,
-                        onSuccess: () => {
-                            console.log('Post created successfully:', post);
-                        },
-                    });
-                });
-            }
-        });
-    };
-
-    reader.onerror = (error) => {
-        console.error('Error reading file: ', error)
-    };
-
-    reader.readAsArrayBuffer(file);
+const onCsvFileSelected = (event) => {
+    importForm.csv_file = event.target.files[0];
 };
 </script>
 
@@ -135,6 +109,12 @@ const importPosts = (event) => {
                             New post
                         </span>
                     </button>
+
+                    <button @click="displayingImportModal = true" class="relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg gap-1.5 px-3 py-1.5 text-sm inline-grid shadow-sm bg-blue-600 text-white hover:bg-blue-500 focus-visible:ring-blue-500/50 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus-visible:ring-blue-400/50">
+                        <span>
+                            Import CSV
+                        </span>
+                    </button>
                 </div>
             </div>
         </template>
@@ -150,20 +130,13 @@ const importPosts = (event) => {
         <create-modal v-model="displayingModal" :on-create="createPost">
             <template #title>
                 <h3 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight flex items-center">
-                    Create new Photo
+                    Create new Post
                 </h3>
             </template>
             <template #content>
-                <div>
-                    <p>
-                        Import Posts
-                    </p>
-                    <input ref="fileInput" type="file" accept=".xlsx, .xls" @change="importPosts">
-                </div>
-
                 <div class="space-y-2">
                     <div class="col-span-6 sm:col-span-4">
-                        <InputLabel for="email" value="Title" />
+                        <InputLabel for="title" value="Title" />
                         <TextInput
                             id="title"
                             v-model="form.title"
@@ -177,14 +150,13 @@ const importPosts = (event) => {
                     </div>
 
                     <div class="col-span-6 sm:col-span-4">
-                        <InputLabel for="email" value="Body" />
+                        <InputLabel for="body" value="Body" />
                         <textarea
                             id="body"
                             v-model="form.body"
                             type="text"
                             class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                             required
-                            autofocus
                             autocomplete="body"
                         />
                         <InputError class="mt-2" :message="form.errors.body" />
@@ -217,7 +189,36 @@ const importPosts = (event) => {
 
                     <InputError class="mt-2" :message="form.errors.photo_path" />
                 </div>
+            </template>
+        </create-modal>
 
+        <create-modal v-model="displayingImportModal" :on-create="importPosts">
+            <template #title>
+                <h3 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight flex items-center">
+                    Importing posts from CSV
+                </h3>
+            </template>
+            <template #content>
+                <div class="space-y-4">
+                    <div>
+                        <InputLabel for="csv_file" value="Выберите CSV файл" />
+                        <p class="text-sm text-gray-500 mt-1">
+                            File format: title, content, image URL (optional)
+                        </p>
+                        <input
+                            type="file"
+                            accept=".csv"
+                            class="mt-2 block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                            @change="onCsvFileSelected"
+                        />
+                        <InputError class="mt-2" :message="importForm.errors.csv_file" />
+                    </div>
+                </div>
             </template>
         </create-modal>
 

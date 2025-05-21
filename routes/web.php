@@ -32,6 +32,7 @@ Route::middleware([LogVisit::class])->group(function () {
 
     Route::middleware([CheckAdminRole::class, 'auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
         Route::resource('posts', PostController::class);
+        Route::post('/posts/import-csv', [PostController::class, 'importCsv'])->name('posts.import-csv');
     });
 });
 

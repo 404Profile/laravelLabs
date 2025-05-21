@@ -43,6 +43,20 @@ class PostController extends Controller
     }
 
     /**
+     * Import posts from a CSV file.
+     */
+    public function importCsv(Request $request, PostService $postService)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $imported = $postService->importFromCsv($request->file('csv_file'));
+
+        return Redirect::back()->with('success', $imported . ' записей блога импортировано успешно');
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(Post $post)
